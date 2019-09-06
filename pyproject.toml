@@ -1,0 +1,5 @@
+# unfortunately 'black' doesn't support setup.cfg, and it's important
+# not to auto format test_cases/ files for testing codemods preserving
+# whitespace, indentation, etc.
+[tool.black]
+exclude = "test_cases"
