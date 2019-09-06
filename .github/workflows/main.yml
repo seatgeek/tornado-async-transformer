@@ -1,0 +1,17 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup pipenv
+      run: pipenv sync --dev
+    - name: Run test suite
+      run: pipenv run pytest -vv
+    - name: Check black formatting
+      run: pipenv run black --check .
