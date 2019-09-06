@@ -9,9 +9,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
     - name: Setup pipenv
-      run: pipenv sync --dev
+      run: python -m pipenv sync --dev
     - name: Run test suite
-      run: pipenv run pytest -vv
+      run: python -m pipenv run pytest -vv
     - name: Check black formatting
-      run: pipenv run black --check .
+      run: python -m pipenv run black --check .
