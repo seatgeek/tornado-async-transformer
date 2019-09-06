@@ -15,7 +15,9 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     # TODO: @tornado.gen.coroutine, @tornado.gen.Return
     # TODO: @gen.Task
     # TODO: yield [...] -> asyncio.gather
+    # TODO: yield dict
     # TODO: multiple decorators
+    # TODO: gen.sleep
 
     def __init__(self):
         self.coroutine_stack: List[bool] = []
