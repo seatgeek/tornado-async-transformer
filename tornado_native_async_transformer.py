@@ -16,7 +16,6 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     # TODO: @gen.Task
     # TODO: yield [...] -> asyncio.gather
     # TODO: yield dict
-    # TODO: multiple decorators
     # TODO: gen.sleep
 
     def __init__(self):
@@ -134,13 +133,17 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
         # @gen.coroutine
         if (
+            isinstance(decorator.decorator, cst.Attribute) and
             decorator.decorator.value.value == "gen"
             and decorator.decorator.attr.value == "coroutine"
         ):
             return True
 
         # @coroutine
-        if decorator.decorator.value.value == "coroutine":
+        if (
+            isinstance(decorator.decorator, cst.Name) and
+            decorator.decorator.value == "coroutine"
+        ):
             return True
 
         return False
