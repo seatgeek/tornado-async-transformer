@@ -1,6 +1,8 @@
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Set
 
 import libcst as cst
+
+from tornado_native_async_transformer.helpers import with_added_imports
 
 
 class TransformError(Exception):
@@ -20,12 +22,23 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     """
 
     # TODO: @tornado.gen.coroutine, @tornado.gen.Return
-    # TODO: yield [...] -> asyncio.gather
     # TODO: yield dict
     # TODO: gen.sleep
 
     def __init__(self):
         self.coroutine_stack: List[bool] = []
+        self.required_imports: Set[str] = set()
+
+    def leave_Module(self, node: cst.Module, updated_node: cst.Module) -> cst.Module:
+        if not self.required_imports:
+            return updated_node
+
+        imports = [
+            self.make_simple_package_import(required_import)
+            for required_import in self.required_imports
+        ]
+
+        return with_added_imports(updated_node, imports)
 
     def visit_Call(self, node: cst.Call) -> Optional[bool]:
         if self.is_gen_task_call(node):
@@ -81,11 +94,27 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
         if not isinstance(node.value, cst.BaseExpression):
             return updated_node
 
+        if isinstance(node.value, cst.List):
+            self.required_imports.add("asyncio")
+            expression = self.pluck_asyncio_gather_expression_from_yield_list(node)
+
+        else:
+            expression = node.value
+
         return cst.Await(
-            expression=node.value,
+            expression=expression,
             whitespace_after_await=node.whitespace_after_yield,
             lpar=node.lpar,
             rpar=node.rpar,
+        )
+
+    @staticmethod
+    def pluck_asyncio_gather_expression_from_yield_list(
+        node: cst.Yield
+    ) -> cst.BaseExpression:
+        return cst.Call(
+            func=cst.Attribute(value=cst.Name("asyncio"), attr=cst.Name("gather")),
+            args=[cst.Arg(value=element.value) for element in node.value.elements],
         )
 
     @staticmethod
@@ -182,3 +211,8 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
                 for decorator in function_def.decorators
             )
         )
+
+    @staticmethod
+    def make_simple_package_import(package: str) -> cst.Import:
+        assert not "." in package, "this only supports a root package, e.g. 'import os'"
+        return cst.Import(names=[cst.ImportAlias(name=cst.Name(package))])
