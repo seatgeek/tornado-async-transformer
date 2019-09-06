@@ -92,6 +92,7 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     def is_gen_task_call(node: cst.Call) -> bool:
         if (
             isinstance(node.func, cst.Attribute)
+            and isinstance(node.func.value, cst.Name)
             and node.func.value.value == "gen"
             and node.func.attr.value == "Task"
         ):
