@@ -12,9 +12,11 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.7'
+    - name: Install pipenv
+      run: sudo pip install pipenv
     - name: Setup pipenv
-      run: python -m pipenv sync --dev
+      run: pipenv sync --dev
     - name: Run test suite
-      run: python -m pipenv run pytest -vv
+      run: pipenv run pytest -vv
     - name: Check black formatting
-      run: python -m pipenv run black --check .
+      run: pipenv run black --check .
