@@ -133,16 +133,16 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
         # @gen.coroutine
         if (
-            isinstance(decorator.decorator, cst.Attribute) and
-            decorator.decorator.value.value == "gen"
+            isinstance(decorator.decorator, cst.Attribute)
+            and decorator.decorator.value.value == "gen"
             and decorator.decorator.attr.value == "coroutine"
         ):
             return True
 
         # @coroutine
         if (
-            isinstance(decorator.decorator, cst.Name) and
-            decorator.decorator.value == "coroutine"
+            isinstance(decorator.decorator, cst.Name)
+            and decorator.decorator.value == "coroutine"
         ):
             return True
 
