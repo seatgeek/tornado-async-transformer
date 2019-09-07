@@ -1,5 +1,7 @@
 # Tornado Async Transformer
 
+![](https://github.com/zhammer/tornado-async-transformer/workflows/CI/badge.svg)
+
 A [libcst](https://github.com/Instagram/LibCST) transformer for updating tornado @gen.coroutine syntax to python3.5+ native async/await.
 
 [Check out the demo.](https://tornado-async-transformer.zhammer.now.sh/)
