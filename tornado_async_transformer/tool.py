@@ -15,12 +15,17 @@ def transform_file(visitor: CSTVisitorT, filename: str) -> None:
     with open(filename, "r") as python_file:
         python_source = python_file.read()
 
-    source_tree = cst.parse_module(python_source)
+    try:
+        source_tree = cst.parse_module(python_source)
+    except Exception as e:
+        print("{} failed parse: {}".format(filename, str(e)))
+        return
 
     try:
         visited_tree = source_tree.visit(visitor)
     except TransformError as e:
         print("{} failed transform: {}".format(filename, str(e)))
+        return
 
     if not visited_tree.deep_equals(source_tree):
         with open(filename, "w") as python_file:
