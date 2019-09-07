@@ -207,6 +207,16 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
         if not isinstance(node.exc, cst.Call):
             return False
 
+        # raise tornado.gen.Return()
+        if (
+            isinstance(node.exc.func, cst.Attribute)
+            and isinstance(node.exc.func.value, cst.Attribute)
+            and node.exc.func.value.value.value == "tornado"
+            and node.exc.func.value.attr.value == "gen"
+            and node.exc.func.attr.value == "Return"
+        ):
+            return True
+
         # raise gen.Return()
         if (
             isinstance(node.exc.func, cst.Attribute)
@@ -223,6 +233,16 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
+        # @tornado.gen.coroutine
+        if (
+            isinstance(decorator.decorator, cst.Attribute)
+            and isinstance(decorator.decorator.value, cst.Attribute)
+            and decorator.decorator.value.value.value == "tornado"
+            and decorator.decorator.value.attr.value == "gen"
+            and decorator.decorator.attr.value == "coroutine"
+        ):
+            return True
+
         # @gen.coroutine
         if (
             isinstance(decorator.decorator, cst.Attribute)
