@@ -18,6 +18,9 @@ def with_added_imports(
                 updated_body.append(cst.SimpleStatementLine(body=tuple([import_node])))
             added_import = True
 
+    if not added_import:
+        raise RuntimeError("Failed to add imports")
+
     return module_node.with_changes(body=tuple(updated_body))
 
 
