@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple, Union, Set
 
 import libcst as cst
 
-from tornado_native_async_transformer.helpers import with_added_imports
+from tornado_async_transformer.helpers import with_added_imports
 
 
 class TransformError(Exception):
@@ -12,7 +12,7 @@ class TransformError(Exception):
     """
 
 
-class TornadoNativeAsyncTransformer(cst.CSTTransformer):
+class TornadoAsyncTransformer(cst.CSTTransformer):
     """
     A libcst transformer that replaces the legacy @gen.coroutine/yield
     async syntax with the python3.7 native async/await syntax.
@@ -179,9 +179,7 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     def pluck_gen_return_value(
         node: cst.Raise
     ) -> Tuple[Union[cst.BaseExpression, None], cst.SimpleWhitespace]:
-        if TornadoNativeAsyncTransformer.is_gen_return_call(node) and len(
-            node.exc.args
-        ):
+        if TornadoAsyncTransformer.is_gen_return_call(node) and len(node.exc.args):
             return node.exc.args[0].value, node.whitespace_after_raise
 
         # if there's no return value, we don't preserve whitespace after 'raise'
@@ -190,8 +188,8 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     @staticmethod
     def is_gen_return(node: cst.Raise) -> bool:
         is_gen_return_checks = [
-            TornadoNativeAsyncTransformer.is_gen_return_call,
-            TornadoNativeAsyncTransformer.is_gen_return_statement,
+            TornadoAsyncTransformer.is_gen_return_call,
+            TornadoAsyncTransformer.is_gen_return_statement,
         ]
         return any(
             is_gen_return_check(node) for is_gen_return_check in is_gen_return_checks
@@ -246,7 +244,7 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     def is_coroutine(function_def: cst.FunctionDef) -> bool:
         return any(
             (
-                TornadoNativeAsyncTransformer.is_coroutine_decorator(decorator)
+                TornadoAsyncTransformer.is_coroutine_decorator(decorator)
                 for decorator in function_def.decorators
             )
         )

@@ -3,10 +3,7 @@ from typing import NamedTuple, Tuple
 import libcst
 import pytest
 
-from tornado_native_async_transformer import (
-    TornadoNativeAsyncTransformer,
-    TransformError,
-)
+from tornado_async_transformer import TornadoAsyncTransformer, TransformError
 
 from tests.collector import (
     ExceptionCase,
@@ -19,7 +16,7 @@ from tests.collector import (
 @pytest.mark.parametrize("test_case", collect_test_cases())
 def test_python_module(test_case: TestCase) -> None:
     source_tree = libcst.parse_module(test_case.before)
-    visited_tree = source_tree.visit(TornadoNativeAsyncTransformer())
+    visited_tree = source_tree.visit(TornadoAsyncTransformer())
     assert visited_tree.code == test_case.after
 
 
@@ -28,6 +25,6 @@ def test_unsupported_python_module(exception_case: ExceptionCase) -> None:
     source_tree = libcst.parse_module(exception_case.source)
 
     with pytest.raises(TransformError) as exception:
-        visited_tree = source_tree.visit(TornadoNativeAsyncTransformer())
+        visited_tree = source_tree.visit(TornadoAsyncTransformer())
 
     assert exception_case.expected_error_message in str(exception.value)
