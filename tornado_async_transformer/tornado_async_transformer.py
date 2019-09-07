@@ -187,7 +187,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
         if not isinstance(node.exc, cst.Attribute):
             return False
 
-        return name_or_attribute_matches(node.exc, ["gen", "Return"])
+        return name_or_attribute_matches(node.exc, ["gen", "Return"]) or name_or_attribute_matches(node.exc, ["tornado", "gen", "Return"])
 
     @staticmethod
     def is_gen_return_call(node: cst.Raise) -> bool:
