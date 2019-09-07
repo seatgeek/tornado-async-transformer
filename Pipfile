@@ -21,4 +21,4 @@ allow_prereleases = true
 [scripts]
 bundle = "python setup.py sdist bdist_wheel"
 sweep = "rm -fr build dist *.egg-info"
-deploy = "twine upload dist/*"
+deploy = "twine upload --skip-existing dist/*"
