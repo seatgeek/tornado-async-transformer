@@ -21,7 +21,7 @@ jobs:
     - name: Check black formatting
       run: pipenv run black --check .
     - name: Deploy to pypi
-      if: github.ref === 'master'
+      if: github.ref == 'master'
       env:
         TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
