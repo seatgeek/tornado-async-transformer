@@ -114,7 +114,7 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     ) -> cst.BaseExpression:
         return cst.Call(
             func=cst.Attribute(value=cst.Name("asyncio"), attr=cst.Name("gather")),
-            args=[cst.Arg(value=element.value) for element in node.value.elements],
+            args=[cst.Arg(value=node.value, star="*")],
         )
 
     @staticmethod
