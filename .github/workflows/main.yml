@@ -6,7 +6,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v1
@@ -20,3 +20,9 @@ jobs:
       run: pipenv run pytest -vv
     - name: Check black formatting
       run: pipenv run black --check .
+    - name: Deploy to pypi
+      if: github.ref === 'master'
+      env:
+        TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+      run: pipenv run bundle && pipenv run deploy
