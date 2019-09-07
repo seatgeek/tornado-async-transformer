@@ -7,6 +7,7 @@ verify_ssl = true
 mypy = "*"
 pytest = "*"
 black = "*"
+twine = "*"
 
 [packages]
 libcst = "*"
@@ -16,3 +17,8 @@ python_version = "3.7"
 
 [pipenv]
 allow_prereleases = true
+
+[scripts]
+bundle = "python setup.py sdist bdist_wheel"
+sweep = "rm -fr build dist *.egg-info"
+deploy = "twine upload dist/*"
