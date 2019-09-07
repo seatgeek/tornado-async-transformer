@@ -2,7 +2,10 @@ from typing import List, Optional, Tuple, Union, Set
 
 import libcst as cst
 
-from tornado_async_transformer.helpers import with_added_imports, name_or_attribute_matches
+from tornado_async_transformer.helpers import (
+    with_added_imports,
+    name_or_attribute_matches,
+)
 
 
 class TransformError(Exception):
@@ -187,7 +190,9 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
         if not isinstance(node.exc, cst.Attribute):
             return False
 
-        return name_or_attribute_matches(node.exc, ["gen", "Return"]) or name_or_attribute_matches(node.exc, ["tornado", "gen", "Return"])
+        return name_or_attribute_matches(
+            node.exc, ["gen", "Return"]
+        ) or name_or_attribute_matches(node.exc, ["tornado", "gen", "Return"])
 
     @staticmethod
     def is_gen_return_call(node: cst.Raise) -> bool:
@@ -211,7 +216,9 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
     @staticmethod
     def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
         # @tornado.gen.coroutine
-        if name_or_attribute_matches(decorator.decorator, ["tornado", "gen", "coroutine"]):
+        if name_or_attribute_matches(
+            decorator.decorator, ["tornado", "gen", "coroutine"]
+        ):
             return True
 
         # @gen.coroutine
