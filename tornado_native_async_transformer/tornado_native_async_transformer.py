@@ -22,7 +22,6 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
     """
 
     # TODO: @tornado.gen.coroutine, @tornado.gen.Return
-    # TODO: yield dict
     # TODO: gen.sleep
 
     def __init__(self):
@@ -94,9 +93,26 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
         if not isinstance(node.value, cst.BaseExpression):
             return updated_node
 
-        if isinstance(node.value, cst.List):
+        if isinstance(node.value, (cst.List, cst.ListComp)):
             self.required_imports.add("asyncio")
-            expression = self.pluck_asyncio_gather_expression_from_yield_list(node)
+            expression = self.pluck_asyncio_gather_expression_from_yield_list_or_list_comp(
+                node
+            )
+
+        elif isinstance(node.value, (cst.Dict, cst.DictComp)):
+            raise TransformError(
+                "Yielding a dict of futures (https://www.tornadoweb.org/en/branch3.2/releases/v3.2.0.html#tornado-gen) added in tornado 3.2 is unsupported by the codemod. This file has not been modified. Manually update to supported syntax before running again."
+            )
+
+        elif isinstance(node.value, cst.Call):
+            if (
+                isinstance(node.value.func, cst.Name)
+                and node.value.func.value == "dict"
+            ):
+                raise TransformError(
+                    "Yielding a dict of futures (https://www.tornadoweb.org/en/branch3.2/releases/v3.2.0.html#tornado-gen) added in tornado 3.2 is unsupported by the codemod. This file has not been modified. Manually update to supported syntax before running again."
+                )
+            expression = node.value
 
         else:
             expression = node.value
@@ -109,7 +125,7 @@ class TornadoNativeAsyncTransformer(cst.CSTTransformer):
         )
 
     @staticmethod
-    def pluck_asyncio_gather_expression_from_yield_list(
+    def pluck_asyncio_gather_expression_from_yield_list_or_list_comp(
         node: cst.Yield
     ) -> cst.BaseExpression:
         return cst.Call(

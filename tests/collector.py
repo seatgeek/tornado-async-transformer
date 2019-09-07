@@ -66,7 +66,8 @@ def collect_exception_cases() -> Tuple[Any, ...]:
             pytest.param(
                 ExceptionCase(
                     source=source, expected_error_message=expected_error_message
-                )
+                ),
+                id=test_case_name,
             )
         )
 
