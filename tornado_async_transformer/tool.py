@@ -37,8 +37,8 @@ def collect_files(base: str) -> Tuple[str, ...]:
     Collect all python files under a base directory.
     """
 
-    def is_python_file(path: str):
-        return os.path.isfile(path) and re.search(r"\.pyi?$", path)
+    def is_python_file(path: str) -> bool:
+        return bool(os.path.isfile(path) and re.search(r"\.pyi?$", path))
 
     if is_python_file(base):
         return (base,)
@@ -57,7 +57,7 @@ def collect_files(base: str) -> Tuple[str, ...]:
     return tuple()
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Codemod for converting legacy tornado @gen.coroutine syntax to python3.5+ native async/await"
     )

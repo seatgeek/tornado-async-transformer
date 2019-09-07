@@ -55,7 +55,7 @@ def name_matches(node: cst.Name, parts: Sequence[str]) -> bool:
     if not len(parts) == 1:
         return False
 
-    return node.value == parts[0]
+    return bool(node.value == parts[0])
 
 
 @name_or_attribute_matches.register
