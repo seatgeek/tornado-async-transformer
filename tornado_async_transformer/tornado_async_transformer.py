@@ -5,6 +5,7 @@ import libcst as cst
 from tornado_async_transformer.helpers import (
     with_added_imports,
     name_or_attribute_matches,
+    name_or_attribute_matches_one_of,
 )
 
 
@@ -177,59 +178,31 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def is_gen_return(node: cst.Raise) -> bool:
-        is_gen_return_checks = [
-            TornadoAsyncTransformer.is_gen_return_call,
-            TornadoAsyncTransformer.is_gen_return_statement,
-        ]
-        return any(
-            is_gen_return_check(node) for is_gen_return_check in is_gen_return_checks
-        )
+        return TornadoAsyncTransformer.is_gen_return_call(
+            node
+        ) or TornadoAsyncTransformer.is_gen_return_statement(node)
 
     @staticmethod
     def is_gen_return_statement(node: cst.Raise) -> bool:
-        if not isinstance(node.exc, cst.Attribute):
-            return False
-
-        return name_or_attribute_matches(
-            node.exc, ["gen", "Return"]
-        ) or name_or_attribute_matches(node.exc, ["tornado", "gen", "Return"])
+        return name_or_attribute_matches_one_of(
+            node.exc, [["tornado", "gen", "Return"], ["gen", "Return"], ["Return"]]
+        )
 
     @staticmethod
     def is_gen_return_call(node: cst.Raise) -> bool:
         if not isinstance(node.exc, cst.Call):
             return False
 
-        # raise tornado.gen.Return()
-        if name_or_attribute_matches(node.exc.func, ["tornado", "gen", "Return"]):
-            return True
-
-        # raise gen.Return()
-        if name_or_attribute_matches(node.exc.func, ["gen", "Return"]):
-            return True
-
-        # raise Return()
-        if name_or_attribute_matches(node.exc.func, ["Return"]):
-            return False
-
-        return False
+        return name_or_attribute_matches_one_of(
+            node.exc.func, [["tornado", "gen", "Return"], ["gen", "Return"], ["Return"]]
+        )
 
     @staticmethod
     def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
-        # @tornado.gen.coroutine
-        if name_or_attribute_matches(
-            decorator.decorator, ["tornado", "gen", "coroutine"]
-        ):
-            return True
-
-        # @gen.coroutine
-        if name_or_attribute_matches(decorator.decorator, ["gen", "coroutine"]):
-            return True
-
-        # @coroutine
-        if name_or_attribute_matches(decorator.decorator, ["coroutine"]):
-            return True
-
-        return False
+        return name_or_attribute_matches_one_of(
+            decorator.decorator,
+            [["tornado", "gen", "coroutine"], ["gen", "coroutine"], ["coroutine"]],
+        )
 
     @staticmethod
     def is_coroutine(function_def: cst.FunctionDef) -> bool:

@@ -35,6 +35,12 @@ def _is_import_line(
     )
 
 
+def name_or_attribute_matches_one_of(
+    node: cst.BaseExpression, parts_options: Sequence[Sequence[str]]
+) -> bool:
+    return any(name_or_attribute_matches(node, parts) for parts in parts_options)
+
+
 @singledispatch
 def name_or_attribute_matches(node: cst.BaseExpression, parts: Sequence[str]) -> bool:
     """
