@@ -5,7 +5,7 @@ with open("README.md", "r") as readme:
 
 setup(
     name="tornado-async-transformer",
-    version="0.1.5",
+    version="0.1.6",
     description="libcst transformer and codemod for updating tornado @gen.coroutine syntax to python3.5+ native async/await",
     url="https://github.com/zhammer/tornado-async-transformer",
     packages=find_packages(exclude=["tests", "demo_site"]),

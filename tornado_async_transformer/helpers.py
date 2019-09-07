@@ -1,3 +1,4 @@
+from functools import singledispatch
 from typing import List, Sequence, Union
 
 import libcst as cst
@@ -32,3 +33,31 @@ def _is_import_line(
         and len(line.body) == 1
         and isinstance(line.body[0], (cst.Import, cst.ImportFrom))
     )
+
+
+@singledispatch
+def name_or_attribute_matches(node: cst.BaseExpression, parts: Sequence[str]) -> bool:
+    """
+    Returns true of a Name or Attribute node matches some list of parts, such
+    as "tornado.gen.coroutine." Returns False if node isn't a Name or Attribute.
+    """
+    return False
+
+
+@name_or_attribute_matches.register
+def name_matches(node: cst.Name, parts: Sequence[str]) -> bool:
+    if not len(parts) == 1:
+        return False
+
+    return node.value == parts[0]
+
+
+@name_or_attribute_matches.register
+def attribute_matches(node: cst.Attribute, parts: Sequence[str]) -> bool:
+    if not len(parts) >= 2:
+        return False
+
+    if not name_or_attribute_matches(node.attr, parts[-1:]):
+        return False
+
+    return name_or_attribute_matches(node.value, parts[:-1])

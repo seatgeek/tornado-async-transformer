@@ -2,7 +2,10 @@ from typing import List, Optional, Tuple, Union, Set
 
 import libcst as cst
 
-from tornado_async_transformer.helpers import with_added_imports
+from tornado_async_transformer.helpers import (
+    with_added_imports,
+    name_or_attribute_matches,
+)
 
 
 class TransformError(Exception):
@@ -116,10 +119,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
             )
 
         elif isinstance(updated_node.value, cst.Call):
-            if (
-                isinstance(updated_node.value.func, cst.Name)
-                and updated_node.value.func.value == "dict"
-            ):
+            if name_or_attribute_matches(updated_node.value.func, ["dict"]):
                 raise TransformError(
                     "Yielding a dict of futures (https://www.tornadoweb.org/en/branch3.2/releases/v3.2.0.html#tornado-gen) added in tornado 3.2 is unsupported by the codemod. This file has not been modified. Manually update to supported syntax before running again."
                 )
@@ -137,12 +137,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def is_gen_sleep_call(node: cst.Call) -> bool:
-        if (
-            isinstance(node.func, cst.Attribute)
-            and isinstance(node.func.value, cst.Name)
-            and node.func.value.value == "gen"
-            and node.func.attr.value == "sleep"
-        ):
+        if name_or_attribute_matches(node.func, ["gen", "sleep"]):
             return True
 
         return False
@@ -158,12 +153,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def is_gen_task_call(node: cst.Call) -> bool:
-        if (
-            isinstance(node.func, cst.Attribute)
-            and isinstance(node.func.value, cst.Name)
-            and node.func.value.value == "gen"
-            and node.func.attr.value == "Task"
-        ):
+        if name_or_attribute_matches(node.func, ["gen", "Task"]):
             return True
 
         return False
@@ -200,42 +190,43 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
         if not isinstance(node.exc, cst.Attribute):
             return False
 
-        return node.exc.value.value == "gen" and node.exc.attr.value == "Return"
+        return name_or_attribute_matches(
+            node.exc, ["gen", "Return"]
+        ) or name_or_attribute_matches(node.exc, ["tornado", "gen", "Return"])
 
     @staticmethod
     def is_gen_return_call(node: cst.Raise) -> bool:
         if not isinstance(node.exc, cst.Call):
             return False
 
+        # raise tornado.gen.Return()
+        if name_or_attribute_matches(node.exc.func, ["tornado", "gen", "Return"]):
+            return True
+
         # raise gen.Return()
-        if (
-            isinstance(node.exc.func, cst.Attribute)
-            and node.exc.func.value.value == "gen"
-            and node.exc.func.attr.value == "Return"
-        ):
+        if name_or_attribute_matches(node.exc.func, ["gen", "Return"]):
             return True
 
         # raise Return()
-        if isinstance(node.exc.func, cst.Name) and node.exc.func.value == "Return":
-            return True
+        if name_or_attribute_matches(node.exc.func, ["Return"]):
+            return False
 
         return False
 
     @staticmethod
     def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
-        # @gen.coroutine
-        if (
-            isinstance(decorator.decorator, cst.Attribute)
-            and decorator.decorator.value.value == "gen"
-            and decorator.decorator.attr.value == "coroutine"
+        # @tornado.gen.coroutine
+        if name_or_attribute_matches(
+            decorator.decorator, ["tornado", "gen", "coroutine"]
         ):
             return True
 
+        # @gen.coroutine
+        if name_or_attribute_matches(decorator.decorator, ["gen", "coroutine"]):
+            return True
+
         # @coroutine
-        if (
-            isinstance(decorator.decorator, cst.Name)
-            and decorator.decorator.value == "coroutine"
-        ):
+        if name_or_attribute_matches(decorator.decorator, ["coroutine"]):
             return True
 
         return False
