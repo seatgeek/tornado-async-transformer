@@ -9,7 +9,7 @@ setup(
     description="libcst transformer and codemod for updating tornado @gen.coroutine syntax to python3.5+ native async/await",
     url="https://github.com/zhammer/tornado-async-transformer",
     packages=find_packages(exclude=["tests", "demo_site"]),
-    package_data={"tornado_async_transformer": ["py.typed"]},
+    package_data={"exception_message_transformer": ["py.typed"]},
     install_requires=["libcst >= 0.1.2"],
     author="Zach Hammer",
     author_email="zachary_hammer@alumni.brown.edu",

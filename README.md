@@ -8,8 +8,8 @@ A [libcst](https://github.com/Instagram/LibCST) transformer for updating tornado
 
 ### Usage
 You can either:
-- Add `tornado_async_transformer.TornadoAsyncTransformer` to your existing libcst codemod.
-- Or run `python -m tornado_async_transformer.tool my_project/` from the commandline.
+- Add `exception_message_transformer.ExceptionMessageTransformer` to your existing libcst codemod.
+- Or run `python -m exception_message_transformer.tool my_project/` from the commandline.
 
 #### Example
 ```diff
