@@ -145,7 +145,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def pluck_asyncio_gather_expression_from_yield_list_or_list_comp(
-        node: cst.Yield
+        node: cst.Yield,
     ) -> cst.BaseExpression:
         return cst.Call(
             func=cst.Attribute(value=cst.Name("asyncio"), attr=cst.Name("gather")),
@@ -168,7 +168,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def pluck_gen_return_value(
-        node: cst.Raise
+        node: cst.Raise,
     ) -> Tuple[Union[cst.BaseExpression, None], cst.SimpleWhitespace]:
         if TornadoAsyncTransformer.is_gen_return_call(node) and len(node.exc.args):
             return node.exc.args[0].value, node.whitespace_after_raise
