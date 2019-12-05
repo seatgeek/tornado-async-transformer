@@ -78,7 +78,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
             decorators=[
                 decorator
                 for decorator in updated_node.decorators
-                if not self.is_coroutine_decorator(decorator)
+                if not self.is_coroutine_decorator(decorator, include_gen_test=False)
             ],
             asynchronous=cst.Asynchronous(),
         )
@@ -198,17 +198,35 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
         )
 
     @staticmethod
-    def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
+    def is_coroutine_decorator(
+        decorator: cst.Decorator, include_gen_test: bool
+    ) -> bool:
+        coroutine_decorators = [
+            ["tornado", "gen", "coroutine"],
+            ["gen", "coroutine"],
+            ["coroutine"],
+        ]
+        if include_gen_test:
+            coroutine_decorators += [
+                ["tornado", "testing", "gen_test"],
+                ["testing", "gen_test"],
+                ["gen_test"],
+            ]
         return name_or_attribute_matches_one_of(
-            decorator.decorator,
-            [["tornado", "gen", "coroutine"], ["gen", "coroutine"], ["coroutine"]],
+            decorator.decorator, coroutine_decorators
         )
 
     @staticmethod
     def is_coroutine(function_def: cst.FunctionDef) -> bool:
+        # function already uses async def
+        if not function_def.asynchronous is None:
+            return False
+
         return any(
             (
-                TornadoAsyncTransformer.is_coroutine_decorator(decorator)
+                TornadoAsyncTransformer.is_coroutine_decorator(
+                    decorator, include_gen_test=True
+                )
                 for decorator in function_def.decorators
             )
         )
