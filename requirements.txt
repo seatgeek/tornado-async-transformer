@@ -1,0 +1,5 @@
+libcst==0.1.2
+black==19.10b0
+mypy==0.750
+pytest==5.3.1
+twine==3.1.1

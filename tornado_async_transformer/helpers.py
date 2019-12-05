@@ -50,7 +50,7 @@ def name_or_attribute_matches(node: cst.BaseExpression, parts: Sequence[str]) ->
     return False
 
 
-@name_or_attribute_matches.register
+@name_or_attribute_matches.register(cst.Name)
 def name_matches(node: cst.Name, parts: Sequence[str]) -> bool:
     if not len(parts) == 1:
         return False
@@ -58,7 +58,7 @@ def name_matches(node: cst.Name, parts: Sequence[str]) -> bool:
     return bool(node.value == parts[0])
 
 
-@name_or_attribute_matches.register
+@name_or_attribute_matches.register(cst.Attribute)
 def attribute_matches(node: cst.Attribute, parts: Sequence[str]) -> bool:
     if not len(parts) >= 2:
         return False
