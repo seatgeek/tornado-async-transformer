@@ -1,2 +1,0 @@
-libcst==0.1.2
-dataclasses==0.6  # until zeit 3.7 support

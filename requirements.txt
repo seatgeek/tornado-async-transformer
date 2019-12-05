@@ -4,3 +4,6 @@ mypy==0.750
 pytest==5.3.1
 twine==3.1.1
 wheel==0.33.6
+
+# for zeit site, until python3.7 is supported
+dataclasses==0.6; python_version < '3.6'

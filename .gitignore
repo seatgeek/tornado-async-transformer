@@ -125,3 +125,6 @@ dmypy.json
 
 # VS Code config
 .vscode/
+
+# Zeit now
+.now/

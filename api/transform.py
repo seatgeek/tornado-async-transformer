@@ -1,3 +1,9 @@
+"""
+This file defines the REST api route for the zeit now demo site, as I
+haven't been able to figure out how to nest in within the demo_site/
+directory.
+"""
+
 from http.server import BaseHTTPRequestHandler
 from tornado_async_transformer import TornadoAsyncTransformer, TransformError
 import json
