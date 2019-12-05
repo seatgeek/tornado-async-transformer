@@ -25,8 +25,6 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
     files.
     """
 
-    # TODO: @tornado.gen.coroutine, @tornado.gen.Return
-
     def __init__(self) -> None:
         self.coroutine_stack: List[bool] = []
         self.required_imports: Set[str] = set()

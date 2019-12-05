@@ -1,4 +1,4 @@
-libcst==0.1.2
+libcst==0.2.4
 black==19.10b0
 mypy==0.750
 pytest==5.3.1
