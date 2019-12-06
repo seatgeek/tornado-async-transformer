@@ -1,4 +1,4 @@
-from functools import reduce, singledispatch
+from functools import singledispatch
 from typing import List, Sequence, Union
 
 import libcst as cst
