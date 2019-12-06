@@ -77,7 +77,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
             decorators=[
                 decorator
                 for decorator in updated_node.decorators
-                if not self.is_coroutine_decorator(decorator, include_gen_test=False)
+                if not self.is_gen_coroutine_decorator(decorator)
             ],
             asynchronous=cst.Asynchronous(),
         )
@@ -182,14 +182,23 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
         )
 
     @staticmethod
-    def is_coroutine_decorator(
-        decorator: cst.Decorator, include_gen_test: bool
-    ) -> bool:
-        possibilities = some_version_of("tornado.gen.coroutine")
-        if include_gen_test:
-            possibilities |= some_version_of("tornado.testing.gen_test")
+    def is_coroutine_decorator(decorator: cst.Decorator) -> bool:
+        return (
+            TornadoAsyncTransformer.is_gen_coroutine_decorator(decorator)
+            or TornadoAsyncTransformer.is_gen_test_coroutine_decorator(decorator)
+        )
 
-        return m.matches(decorator, m.Decorator(decorator=possibilities))
+    @staticmethod
+    def is_gen_coroutine_decorator(node: cst.Decorator) -> bool:
+        return m.matches(
+            node, m.Decorator(decorator=some_version_of("tornado.gen.coroutine"))
+        )
+
+    @staticmethod
+    def is_gen_test_coroutine_decorator(node: cst.Decorator) -> bool:
+        return m.matches(
+            node, m.Decorator(decorator=some_version_of("tornado.testing.gen_test"))
+        )
 
     @staticmethod
     def is_coroutine(function_def: cst.FunctionDef) -> bool:
@@ -199,9 +208,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
         return any(
             (
-                TornadoAsyncTransformer.is_coroutine_decorator(
-                    decorator, include_gen_test=True
-                )
+                TornadoAsyncTransformer.is_coroutine_decorator(decorator)
                 for decorator in function_def.decorators
             )
         )

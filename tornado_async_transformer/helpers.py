@@ -29,11 +29,7 @@ def with_added_imports(
 def _is_import_line(
     line: Union[cst.SimpleStatementLine, cst.BaseCompoundStatement]
 ) -> bool:
-    return (
-        isinstance(line, cst.SimpleStatementLine)
-        and len(line.body) == 1
-        and isinstance(line.body[0], (cst.Import, cst.ImportFrom))
-    )
+    return m.matches(line, m.SimpleStatementLine(body=[m.Import() | m.ImportFrom()]))
 
 
 def name_attr_possibilities(tag: str) -> List[Union[m.Name, m.Attribute]]:
