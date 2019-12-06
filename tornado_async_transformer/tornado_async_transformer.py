@@ -1,11 +1,12 @@
-from typing import List, Optional, Tuple, Union, Set
+from typing import List, Optional, Set, Tuple, Union
 
 import libcst as cst
+from libcst import matchers as m
 
 from tornado_async_transformer.helpers import (
+    name_attr_possibilities,
+    some_version_of,
     with_added_imports,
-    name_or_attribute_matches,
-    name_or_attribute_matches_one_of,
 )
 
 
@@ -112,17 +113,13 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
                 updated_node
             )
 
-        elif isinstance(updated_node.value, (cst.Dict, cst.DictComp)):
+        elif m.matches(
+            updated_node,
+            m.Yield(value=((m.Dict() | m.DictComp())) | m.Call(func=m.Name("dict"))),
+        ):
             raise TransformError(
                 "Yielding a dict of futures (https://www.tornadoweb.org/en/branch3.2/releases/v3.2.0.html#tornado-gen) added in tornado 3.2 is unsupported by the codemod. This file has not been modified. Manually update to supported syntax before running again."
             )
-
-        elif isinstance(updated_node.value, cst.Call):
-            if name_or_attribute_matches(updated_node.value.func, ["dict"]):
-                raise TransformError(
-                    "Yielding a dict of futures (https://www.tornadoweb.org/en/branch3.2/releases/v3.2.0.html#tornado-gen) added in tornado 3.2 is unsupported by the codemod. This file has not been modified. Manually update to supported syntax before running again."
-                )
-            expression = updated_node.value
 
         else:
             expression = updated_node.value
@@ -136,10 +133,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def is_gen_sleep_call(node: cst.Call) -> bool:
-        if name_or_attribute_matches(node.func, ["gen", "sleep"]):
-            return True
-
-        return False
+        return m.matches(node, m.Call(func=some_version_of("gen.sleep")))
 
     @staticmethod
     def pluck_asyncio_gather_expression_from_yield_list_or_list_comp(
@@ -152,10 +146,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def is_gen_task_call(node: cst.Call) -> bool:
-        if name_or_attribute_matches(node.func, ["gen", "Task"]):
-            return True
-
-        return False
+        return m.matches(node, m.Call(func=some_version_of("gen.Task")))
 
     @staticmethod
     def in_coroutine(coroutine_stack: List[bool]) -> bool:
@@ -167,7 +158,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
     @staticmethod
     def pluck_gen_return_value(
         node: cst.Raise,
-    ) -> Tuple[Union[cst.BaseExpression, None], cst.SimpleWhitespace]:
+    ) -> Tuple[Optional[cst.BaseExpression], cst.SimpleWhitespace]:
         if TornadoAsyncTransformer.is_gen_return_call(node) and len(node.exc.args):
             return node.exc.args[0].value, node.whitespace_after_raise
 
@@ -182,37 +173,23 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
     @staticmethod
     def is_gen_return_statement(node: cst.Raise) -> bool:
-        return name_or_attribute_matches_one_of(
-            node.exc, [["tornado", "gen", "Return"], ["gen", "Return"], ["Return"]]
-        )
+        return m.matches(node, m.Raise(exc=some_version_of("tornado.gen.Return")))
 
     @staticmethod
     def is_gen_return_call(node: cst.Raise) -> bool:
-        if not isinstance(node.exc, cst.Call):
-            return False
-
-        return name_or_attribute_matches_one_of(
-            node.exc.func, [["tornado", "gen", "Return"], ["gen", "Return"], ["Return"]]
+        return m.matches(
+            node, m.Raise(exc=m.Call(func=some_version_of("tornado.gen.Return"))),
         )
 
     @staticmethod
     def is_coroutine_decorator(
         decorator: cst.Decorator, include_gen_test: bool
     ) -> bool:
-        coroutine_decorators = [
-            ["tornado", "gen", "coroutine"],
-            ["gen", "coroutine"],
-            ["coroutine"],
-        ]
+        possibilities = some_version_of("tornado.gen.coroutine")
         if include_gen_test:
-            coroutine_decorators += [
-                ["tornado", "testing", "gen_test"],
-                ["testing", "gen_test"],
-                ["gen_test"],
-            ]
-        return name_or_attribute_matches_one_of(
-            decorator.decorator, coroutine_decorators
-        )
+            possibilities |= some_version_of("tornado.testing.gen_test")
+
+        return m.matches(decorator, m.Decorator(decorator=possibilities))
 
     @staticmethod
     def is_coroutine(function_def: cst.FunctionDef) -> bool:

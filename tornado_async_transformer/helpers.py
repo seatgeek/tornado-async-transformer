@@ -36,40 +36,6 @@ def _is_import_line(
     )
 
 
-def name_or_attribute_matches_one_of(
-    node: cst.BaseExpression, parts_options: Sequence[Sequence[str]]
-) -> bool:
-    return any(name_or_attribute_matches(node, parts) for parts in parts_options)
-
-
-@singledispatch
-def name_or_attribute_matches(node: cst.BaseExpression, parts: Sequence[str]) -> bool:
-    """
-    Returns true of a Name or Attribute node matches some list of parts, such
-    as "tornado.gen.coroutine." Returns False if node isn't a Name or Attribute.
-    """
-    return False
-
-
-@name_or_attribute_matches.register(cst.Name)
-def name_matches(node: cst.Name, parts: Sequence[str]) -> bool:
-    if not len(parts) == 1:
-        return False
-
-    return bool(node.value == parts[0])
-
-
-@name_or_attribute_matches.register(cst.Attribute)
-def attribute_matches(node: cst.Attribute, parts: Sequence[str]) -> bool:
-    if not len(parts) >= 2:
-        return False
-
-    if not name_or_attribute_matches(node.attr, parts[-1:]):
-        return False
-
-    return name_or_attribute_matches(node.value, parts[:-1])
-
-
 def name_attr_possibilities(tag: str) -> List[Union[m.Name, m.Attribute]]:
     """
     Let's say we want to find all instances of coroutine decorators in our code. The torando coroutine
@@ -108,6 +74,7 @@ def name_attr_possibilities(tag: str) -> List[Union[m.Name, m.Attribute]]:
     >>> tornado_gen_coroutine
     Attribute(value=Attribute(value=Name(value='tornado',...), attr=Name(value='gen',...),...), attr=Name(value='coroutine',...),...)
     """
+
     def _make_name_or_attribute(parts: List[str]) -> Union[m.Name, m.Attribute]:
         if not parts:
             raise RuntimeError("Excpected a non empty list of strings")
@@ -129,3 +96,9 @@ def name_attr_possibilities(tag: str) -> List[Union[m.Name, m.Attribute]]:
     parts = tag.split(".")
     return [_make_name_or_attribute(parts[start:]) for start in range(len(parts))]
 
+
+def some_version_of(tag: str) -> m.OneOf[m.Union[m.Name, m.Attribute]]:
+    """
+    Poorly named wrapper around name_attr_possibilities.
+    """
+    return m.OneOf(*name_attr_possibilities(tag))
