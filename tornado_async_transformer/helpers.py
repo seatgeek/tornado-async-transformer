@@ -87,6 +87,7 @@ def name_attr_possibilities(tag: str) -> List[Union[m.Name, m.Attribute]]:
         # the attribute with value `tornado.gen` and attr `coroutine`
         value = _make_name_or_attribute(parts[:-1])
         attr = _make_name_or_attribute(parts[-1:])
+        assert isinstance(attr, m.Name)
         return m.Attribute(value=value, attr=attr)
 
     parts = tag.split(".")
