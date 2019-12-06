@@ -150,6 +150,12 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
         else:
             expression = updated_node.value
 
+        assert m.matches(updated_node, m.Yield(value=m.BaseExpression()))
+        assert isinstance(
+            updated_node.whitespace_after_node,
+            cst.BaseParenthesizableWhitespace()
+        )
+
         return cst.Await(
             expression=expression,
             whitespace_after_await=updated_node.whitespace_after_yield,
