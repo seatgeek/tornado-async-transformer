@@ -106,12 +106,26 @@ def name_attr_possibilities(tag: str) -> List[Union[m.Name, m.Attribute]]:
 
     # We have a nested attribute "tornado.gen.coroutine"
     >>> tornado_gen_coroutine
-    Attribute(value=Name(value='tornado',...), attr=Attribute(value=Name(value='gen',...), attr=Name(value='coroutine',...),...))
+    Attribute(value=Attribute(value=Name(value='tornado',...), attr=Name(value='gen',...),...), attr=Name(value='coroutine',...),...)
     """
-    def reducer(accumulator: List[Union[m.Name, m.Attribute]], current: str) -> List[Union[m.Name, m.Attribute]]:
-        if not accumulator:
-            return [m.Name(current)]
+    def _make_name_or_attribute(parts: List[str]) -> Union[m.Name, m.Attribute]:
+        if not parts:
+            raise RuntimeError("Excpected a non empty list of strings")
 
-        return [m.Attribute(value=m.Name(current), attr=accumulator[0])] + accumulator
+        # just a name, e.g. `coroutine`
+        if len(parts) == 1:
+            return m.Name(parts[0])
 
-    return reduce(reducer, reversed(tag.split(".")), [])
+        # a name and attribute, e.g. `gen.coroutine`
+        if len(parts) == 2:
+            return m.Attribute(value=m.Name(parts[0]), attr=m.Name(parts[1]))
+
+        # a complex attribute, e.g. `tornado.gen.coroutine`, we want to make
+        # the attribute with value `tornado.gen` and attr `coroutine`
+        value = _make_name_or_attribute(parts[:-1])
+        attr = _make_name_or_attribute(parts[-1:])
+        return m.Attribute(value=value, attr=attr)
+
+    parts = tag.split(".")
+    return [_make_name_or_attribute(parts[start:]) for start in range(len(parts))]
+
