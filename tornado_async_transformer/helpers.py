@@ -73,7 +73,7 @@ def name_attr_possibilities(tag: str) -> List[Union[m.Name, m.Attribute]]:
 
     def _make_name_or_attribute(parts: List[str]) -> Union[m.Name, m.Attribute]:
         if not parts:
-            raise RuntimeError("Excpected a non empty list of strings")
+            raise RuntimeError("Expected a non empty list of strings")
 
         # just a name, e.g. `coroutine`
         if len(parts) == 1:
