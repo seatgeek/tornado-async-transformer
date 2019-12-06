@@ -165,6 +165,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
     def pluck_asyncio_gather_expression_from_yield_list_or_list_comp(
         node: cst.Yield,
     ) -> cst.BaseExpression:
+        assert isinstance(updated_node.value, cst.BaseExpression)
         return cst.Call(
             func=cst.Attribute(value=cst.Name("asyncio"), attr=cst.Name("gather")),
             args=[cst.Arg(value=node.value, star="*")],
