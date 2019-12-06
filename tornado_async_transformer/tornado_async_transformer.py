@@ -152,8 +152,7 @@ class TornadoAsyncTransformer(cst.CSTTransformer):
 
         assert m.matches(updated_node, m.Yield(value=m.BaseExpression()))
         assert isinstance(
-            updated_node.whitespace_after_node,
-            cst.BaseParenthesizableWhitespace()
+            updated_node.whitespace_after_node, cst.BaseParenthesizableWhitespace()
         )
 
         return cst.Await(
