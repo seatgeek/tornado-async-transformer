@@ -4,7 +4,7 @@
 
 A [libcst](https://github.com/Instagram/LibCST) transformer for updating tornado @gen.coroutine syntax to python3.5+ native async/await.
 
-[Check out the demo.](https://tornado-async-transformer.zhammer.now.sh/)
+[Check out the demo.](https://tornado-async-transformer.now.sh)
 
 ### Usage
 You can either:
